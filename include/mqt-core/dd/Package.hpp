@@ -1169,6 +1169,49 @@ public:
     rootEdge = e;
   }
 
+    vEdge measureOneQubit(vEdge& rootEdge, const Qubit index, const bool measureZero, const fp epsilon = 0.001) {
+    const auto& [pzero, pone] = determineMeasurementProbabilities(
+        rootEdge, index);
+    const fp sum = pzero + pone;
+    if (std::abs(sum - 1) > epsilon) {
+      throw std::runtime_error(
+          "Numerical instability occurred during measurement: |alpha|^2 + "
+          "|beta|^2 = " +
+          std::to_string(pzero) + " + " + std::to_string(pone) + " = " +
+          std::to_string(pzero + pone) + ", but should be 1!");
+    }
+    const GateMatrix measurementMatrix =
+        measureZero ? MEAS_ZERO_MAT : MEAS_ONE_MAT;
+    const auto measurementGate = makeGateDD(measurementMatrix, index);
+    vEdge e = multiply(measurementGate, rootEdge);
+    // normalize
+    const fp probability = measureZero ? pzero : pone;
+    assert(probability > 0.);
+    e.w = cn.lookup(e.w / std::sqrt(probability));
+    // incRef(e);
+    // decRef(rootEdge);
+    // rootEdge = e;
+    return e;
+  }
+
+  // outer for one qubit state
+  mEdge outerProduct(vEdge& rootEdge, const Qubit index) {
+    assert(!rootEdge.isTerminal());
+    if (!rootEdge.p->e[0].isTerminal() && !rootEdge.p->e[1].isTerminal()) {
+      throw std::runtime_error(
+          "Cannot compute outer product for multiple-qubits state vector decision "
+          "diagram.");
+    }
+    auto a = cn.lookup(rootEdge.w * rootEdge.p->e[0].w);
+    auto b = cn.lookup(rootEdge.w * rootEdge.p->e[1].w);
+    GateMatrix outerMatrix{};
+    outerMatrix[0] = ComplexNumbers::mag2(a);
+    outerMatrix[1] = std::complex<fp>(RealNumber::val(a.r), RealNumber::val(a.i)) * std::complex<fp>(RealNumber::val(b.r), -RealNumber::val(b.i));
+    outerMatrix[2] = std::complex<fp>(RealNumber::val(b.r), RealNumber::val(b.i)) * std::complex<fp>(RealNumber::val(a.r), -RealNumber::val(a.i));
+    outerMatrix[3] = ComplexNumbers::mag2(b);
+    return makeGateDD(outerMatrix, index);
+  }
+
   ///
   /// Addition
   ///

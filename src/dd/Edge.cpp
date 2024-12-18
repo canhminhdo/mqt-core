@@ -238,6 +238,9 @@ void Edge<Node>::printVector() const {
   for (auto i = 0ULL; i < element; i++) {
     const auto amplitude = getValueByIndex(i);
     const auto n = static_cast<std::size_t>(p->v) + 1U;
+    if (amplitude.real() == 0. && amplitude.imag() == 0.) {
+      continue;
+    }
     for (auto j = n; j > 0; --j) {
       std::cout << ((i >> (j - 1)) & 1ULL);
     }
