@@ -1169,7 +1169,7 @@ public:
     rootEdge = e;
   }
 
-    vEdge measureOneQubit(vEdge& rootEdge, const Qubit index, const bool measureZero, const fp epsilon = 0.001) {
+  vEdge measureOneQubit(vEdge& rootEdge, const Qubit index, const bool measureZero, const fp epsilon = 0.001) {
     const auto& [pzero, pone] = determineMeasurementProbabilities(
         rootEdge, index);
     const fp sum = pzero + pone;
