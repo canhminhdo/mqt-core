@@ -1186,7 +1186,9 @@ public:
     vEdge e = multiply(measurementGate, rootEdge);
     // normalize
     const fp probability = measureZero ? pzero : pone;
-    assert(probability > 0.);
+    if (probability == 0.0) {
+      return Edge<vNode>::zero();
+    }
     e.w = cn.lookup(e.w / std::sqrt(probability));
     // incRef(e);
     // decRef(rootEdge);
@@ -1195,8 +1197,8 @@ public:
   }
 
   // outer for one qubit state
-  mEdge outerProduct(vEdge& rootEdge, const Qubit index) {
-    assert(!rootEdge.isTerminal());
+  mEdge outerProduct(vEdge rootEdge, const Qubit index) {
+    assert(!rootEdge.isZeroTerminal());
     if (!rootEdge.p->e[0].isTerminal() && !rootEdge.p->e[1].isTerminal()) {
       throw std::runtime_error(
           "Cannot compute outer product for multiple-qubits state vector decision "
