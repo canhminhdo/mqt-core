@@ -1169,6 +1169,35 @@ public:
     rootEdge = e;
   }
 
+  std::tuple<vEdge, fp, vEdge, fp> measureOneQubit(vEdge& rootEdge, const Qubit index, const fp epsilon = 0.001) {
+    const auto& [pzero, pone] = determineMeasurementProbabilities(rootEdge, index);
+    const fp sum = pzero + pone;
+    if (std::abs(sum - 1) > epsilon) {
+      throw std::runtime_error(
+          "Numerical instability occurred during measurement: |alpha|^2 + "
+          "|beta|^2 = " +
+          std::to_string(pzero) + " + " + std::to_string(pone) + " = " +
+          std::to_string(pzero + pone) + ", but should be 1!");
+    }
+    const auto measZeroGate = makeGateDD(MEAS_ZERO_MAT, index);
+    const auto measOneGate = makeGateDD(MEAS_ONE_MAT, index);
+    vEdge v0;
+    vEdge v1;
+    if (pzero == 0.0) {
+      v0 = Edge<vNode>::zero();
+    } else {
+      v0 = multiply(measZeroGate, rootEdge);
+      v0.w = cn.lookup(v0.w / std::sqrt(pzero));
+    }
+    if (pone == 0.0) {
+      v1 = Edge<vNode>::zero();
+    } else {
+      v1 = multiply(measOneGate, rootEdge);
+      v1.w = cn.lookup(v1.w / std::sqrt(pone));
+    }
+    return std::make_tuple(v0, pzero, v1, pone);
+  }
+
   vEdge measureOneQubit(vEdge& rootEdge, const Qubit index, const bool measureZero, const fp epsilon = 0.001) {
     const auto& [pzero, pone] = determineMeasurementProbabilities(
         rootEdge, index);
