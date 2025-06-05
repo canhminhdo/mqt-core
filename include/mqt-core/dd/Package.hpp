@@ -1198,6 +1198,13 @@ public:
     return std::make_tuple(v0, pzero, v1, pone);
   }
 
+  void analyze() {
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "vUnique Table: " << vUniqueTable.getStatsJson() << std::endl;
+    std::cout << "mUnique Table: " << mUniqueTable.getStatsJson() << std::endl;
+    std::cout << "cUnique Table: " << cUniqueTable.getStats().json() << std::endl;
+  }
+
   vEdge measureOneQubit(vEdge& rootEdge, const Qubit index, const bool measureZero, const fp epsilon = 0.001) {
     const auto& [pzero, pone] = determineMeasurementProbabilities(
         rootEdge, index);
@@ -1240,7 +1247,9 @@ public:
     outerMatrix[1] = std::complex<fp>(RealNumber::val(a.r), RealNumber::val(a.i)) * std::complex<fp>(RealNumber::val(b.r), -RealNumber::val(b.i));
     outerMatrix[2] = std::complex<fp>(RealNumber::val(b.r), RealNumber::val(b.i)) * std::complex<fp>(RealNumber::val(a.r), -RealNumber::val(a.i));
     outerMatrix[3] = ComplexNumbers::mag2(b);
-    return makeGateDD(outerMatrix, index);
+    auto gateDD = makeGateDD(outerMatrix, index);
+    incRef(gateDD);
+    return gateDD;
   }
 
   ///
