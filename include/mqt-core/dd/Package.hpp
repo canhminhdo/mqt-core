@@ -1233,7 +1233,7 @@ public:
   }
 
   // outer for one qubit state
-  mEdge outerProduct(vEdge rootEdge, const Qubit index) {
+  mEdge outerProduct(vEdge rootEdge, const Qubit target) {
     assert(!rootEdge.isZeroTerminal());
     if (!rootEdge.p->e[0].isTerminal() && !rootEdge.p->e[1].isTerminal()) {
       throw std::runtime_error(
@@ -1247,8 +1247,19 @@ public:
     outerMatrix[1] = std::complex<fp>(RealNumber::val(a.r), RealNumber::val(a.i)) * std::complex<fp>(RealNumber::val(b.r), -RealNumber::val(b.i));
     outerMatrix[2] = std::complex<fp>(RealNumber::val(b.r), RealNumber::val(b.i)) * std::complex<fp>(RealNumber::val(a.r), -RealNumber::val(a.i));
     outerMatrix[3] = ComplexNumbers::mag2(b);
-    auto gateDD = makeGateDD(outerMatrix, index);
-    incRef(gateDD);
+    auto gateDD = makeGateDD(outerMatrix, target);
+    if (gateDD.p->ref == 0) {
+      incRef(gateDD);
+    }
+    return gateDD;
+  }
+
+  // outer for two qubit state
+  mEdge outerProduct(const TwoQubitGateMatrix& mat, const Qubit target1, const Qubit target2) {
+    auto gateDD = makeTwoQubitGateDD(mat, target1, target2);
+    if (gateDD.p->ref == 0) {
+      incRef(gateDD);
+    }
     return gateDD;
   }
 
